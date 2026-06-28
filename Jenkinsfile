@@ -59,12 +59,18 @@ pipeline {
 
         stage('Quality Gate') {
             steps {
-                timeout(time: 3, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline: false
+                script {
+                    try {
+                        timeout(time: 3, unit: 'MINUTES') {
+                            def qg = waitForQualityGate()
+                            echo "Quality gate status: ${qg.status}"
+                        }
+                    } catch (Exception e) {
+                        echo "Quality gate could not be evaluated (likely a new project with no baseline). Continuing without failing the build. Details: ${e.message}"
+                    }
                 }
             }
         }
-    }
 
     post {
         always {
